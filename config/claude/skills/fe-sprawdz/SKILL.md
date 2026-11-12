@@ -1,6 +1,6 @@
 ---
 name: fe-sprawdz
-description: Końcowa weryfikacja zmian po skończonej pracy — typecheck, lint, testy, formatowanie, zgodność z zadaniem, pozostałości (console.log, TODO, martwy kod) oraz code review diffu, z poprawą znalezionych problemów. Użyj, gdy użytkownik mówi "sprawdź raz jeszcze", "sprawdź to", "zrób code review", "zweryfikuj", "double check", "review my changes" albo wpisze /fe-sprawdz.
+description: Końcowa weryfikacja zmian po skończonej pracy — typecheck, lint, testy, formatowanie, zgodność z zadaniem, pozostałości (console.log, TODO, martwy kod) oraz code review diffu, z poprawą znalezionych problemów. Użyj, gdy użytkownik mówi "sprawdź raz jeszcze", "sprawdź to", "zweryfikuj", "double check" albo wpisze /fe-sprawdz. Do samego przeglądu bez poprawiania kodu użyj code-review.
 argument-hint: "[opcjonalny zakres: plik, katalog lub temat]"
 ---
 
@@ -12,21 +12,22 @@ Zakres podany przez użytkownika (może być pusty): $ARGUMENTS
 
 ## 1. Ustal zakres
 
+- Jeśli podano zakres w argumencie — sprawdzasz tylko jego.
 - Jeśli w tej rozmowie wprowadzałeś zmiany — zakresem są te zmiany i zadanie, które je motywowało.
 - W przeciwnym razie: zmiany na branchu względem bazy plus niezacommitowane:
   ```bash
-  BASE=$(git merge-base HEAD origin/main 2>/dev/null || git merge-base HEAD main)
+  DEFAULT=$(git symbolic-ref --short refs/remotes/origin/HEAD 2>/dev/null || echo origin/main)
+  BASE=$(git merge-base HEAD "$DEFAULT")
   git diff --stat "$BASE"; git status --short
   ```
-  Jeśli domyślny branch nie nazywa się `main`, ustal go przez `git symbolic-ref refs/remotes/origin/HEAD`.
-- Przeczytaj cały diff, nie tylko listę plików. Dla zmienionych funkcji, typów i propsów sprawdź też miejsca użycia poza diffem.
+- Przeczytaj cały diff, nie tylko listę plików, oraz nowe pliki ze statusem `??` z `git status` (nie ma ich w `git diff`). Dla zmienionych funkcji, typów i propsów sprawdź też miejsca użycia poza diffem.
 
 ## 2. Uruchom automatyczne sprawdzenia
 
 Znajdź komendy projektu (scripts w package.json, CLAUDE.md, Makefile, pyproject, workflowy w .github/workflows) i uruchom je, w miarę możliwości zawężone do zmian:
 
 - typecheck (np. `yarn tsc`)
-- lint (np. `yarn lint`; jeśli wspiera `--since`, użyj go)
+- lint (np. `yarn lint`)
 - testy zmienionych pakietów lub plików (np. `yarn test <ścieżki> --watchAll=false`); jeśli zmieniona logika nie ma testów, odnotuj to
 - formatowanie tylko zmienionych plików (np. `yarn prettier --check <pliki>`)
 
@@ -45,11 +46,11 @@ Szukanie bugów (przypadki brzegowe, async, null) zostaw krokowi 4.
 
 ## 4. Code review
 
-Wywołaj skill `code-review` (przez Skill tool) na zmianach z kroku 1, żeby poszukać błędów poprawności. Nie powtarzaj w raporcie tego, co już wyszło w krokach 2–3.
+Wywołaj skill `code-review` (przez Skill tool) na zmianach z kroku 1, żeby poszukać błędów poprawności. Jeśli zmiany są zacommitowane, podaj mu nazwę brancha jako cel. Nie powtarzaj w raporcie tego, co już wyszło w krokach 2–3.
 
 ## 5. Popraw i zweryfikuj ponownie
 
-- Napraw od razu: błędy tsc, lintu, testów i formatowania wynikające z tych zmian, oczywiste bugi, pozostałości.
+- Napraw od razu: błędy tsc, lintu, testów i formatowania wynikające z tych zmian, oczywiste bugi wprowadzone tymi zmianami, pozostałości.
 - Nie naprawiaj bez pytania: rzeczy poza zakresem, błędy istniejące wcześniej, decyzje projektowe i zmiany zachowania — wypisz je.
 - Po poprawkach uruchom ponownie te sprawdzenia, których poprawki dotyczyły.
 
