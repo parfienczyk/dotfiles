@@ -1,0 +1,12 @@
+[user]
+	name = Karol Parfienczyk
+	email = parfienczyk@gmail.com
+[init]
+	defaultBranch = main
+[alias]
+	st = status -sb
+	ca = commit --amend
+	lg = log --oneline --graph --decorate -20
+# work config, credentials etc. - not in the repo
+[include]
+	path = ~/.gitconfig.local

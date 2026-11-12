@@ -1,0 +1,71 @@
+tap "supabase/tap"
+# User-friendly launcher for Bazel
+brew "bazelisk"
+# Tool to obtain certs from Let's Encrypt and autoenable HTTPS
+brew "certbot"
+# Isolated development environments using Docker
+brew "docker-compose"
+# Modern replacement for 'ls'
+brew "exa", link: false
+# Play, record, convert, and stream select audio and video codecs
+brew "ffmpeg"
+# GitHub command-line tool
+brew "gh"
+# Interpreter for PostScript and PDF
+brew "ghostscript"
+# Open source programming language to build simple/reliable/efficient software
+brew "go"
+# Ambitious Vim-fork focused on extensibility and agility
+brew "neovim"
+# Manage multiple Node.js versions
+brew "nvm"
+# Execute binaries from Python packages in isolated environments
+brew "pipx"
+# PDF rendering library (based on the xpdf-3.0 code base)
+brew "poppler"
+# Easily download, build, install, upgrade, and uninstall Python packages
+brew "python-setuptools"
+# Interpreted, interactive, object-oriented programming language
+brew "python@3.12"
+# Interpreted, interactive, object-oriented programming language
+brew "python@3.14"
+# Cross-shell prompt for astronauts
+brew "starship"
+# Enables extra languages support for Tesseract
+brew "tesseract-lang"
+# JavaScript package manager
+brew "yarn"
+# UNIX shell (command interpreter)
+brew "zsh"
+# Fish-like fast/unobtrusive autosuggestions for zsh
+brew "zsh-autosuggestions"
+# Additional completion definitions for zsh
+brew "zsh-completions"
+# Fish shell like syntax highlighting for zsh
+brew "zsh-syntax-highlighting"
+# Supabase CLI
+brew "supabase/tap/supabase", trusted: true
+# Terminal-based AI coding assistant
+cask "claude-code"
+cask "qlimagesize"
+# Quick Look generator for Markdown files
+cask "qlmarkdown"
+cask "qnapi"
+# Quick Look plugin for JSON files
+cask "quicklook-json"
+# Archive manager for data compression and backups
+cask "rar"
+go "mvdan.cc/gofumpt"
+go "golang.org/x/tools/cmd/goimports"
+go "github.com/golangci/golangci-lint/v2/cmd/golangci-lint"
+go "github.com/sqlc-dev/sqlc/cmd/sqlc"
+npm "@playwright/mcp"
+npm "@shopify/cli"
+npm "cloudinary-cli"
+npm "corepack"
+
+# Installed manually, not through Homebrew:
+# cask "cursor"
+# cask "visual-studio-code"
+# cask "iterm2"
+# cask "raycast"

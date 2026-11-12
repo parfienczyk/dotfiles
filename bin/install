@@ -1,0 +1,94 @@
+#!/usr/bin/env bash
+#
+# Sets up a Mac from this repo. Safe to run again.
+#
+#   bin/install               everything
+#   bin/install --links-only  only symlinks, no Homebrew / oh-my-zsh
+#   bin/install --dry-run     print what would happen, change nothing
+#
+# Existing files are moved to ~/.dotfiles-backup/<date>/ before linking.
+
+set -euo pipefail
+
+DOTFILES="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+BACKUP="$HOME/.dotfiles-backup/$(date +%Y%m%d-%H%M%S)"
+DRY=0
+LINKS_ONLY=0
+
+for arg in "$@"; do
+  case "$arg" in
+    --dry-run) DRY=1 ;;
+    --links-only) LINKS_ONLY=1 ;;
+    *) echo "Unknown option: $arg" >&2; exit 1 ;;
+  esac
+done
+
+run() {
+  if ((DRY)); then echo "  [dry-run] $*"; else "$@"; fi
+}
+
+link() {
+  local src="$DOTFILES/$1" dst="$2"
+
+  if [[ -L "$dst" && "$(readlink "$dst")" == "$src" ]]; then
+    echo "  ok      ${dst/#$HOME/~}"
+    return
+  fi
+
+  if [[ -e "$dst" || -L "$dst" ]]; then
+    local bak="$BACKUP${dst#$HOME}"
+    run mkdir -p "$(dirname "$bak")"
+    run mv "$dst" "$bak"
+    echo "  backup  ${dst/#$HOME/~}"
+  fi
+
+  run mkdir -p "$(dirname "$dst")"
+  run ln -s "$src" "$dst"
+  echo "  link    ${dst/#$HOME/~}"
+}
+
+if ((!LINKS_ONLY)); then
+  echo "Homebrew"
+  if ! command -v brew >/dev/null; then
+    run /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+    eval "$(/opt/homebrew/bin/brew shellenv)"
+  fi
+  run brew bundle --file="$DOTFILES/config/Brewfile"
+
+  echo "oh-my-zsh"
+  if [[ ! -d "$HOME/.oh-my-zsh" ]]; then
+    run sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)" "" --unattended --keep-zshrc
+  fi
+  plugins_dir="$HOME/.oh-my-zsh/custom/plugins"
+  for repo in zsh-users/zsh-autosuggestions zsh-users/zsh-completions zsh-users/zsh-syntax-highlighting; do
+    name="${repo#*/}"
+    [[ -d "$plugins_dir/$name" ]] || run git clone --depth 1 "https://github.com/$repo" "$plugins_dir/$name"
+  done
+fi
+
+echo "Symlinks"
+link home/.zshrc          "$HOME/.zshrc"
+link home/.zprofile       "$HOME/.zprofile"
+link home/.gitconfig      "$HOME/.gitconfig"
+link config/git/ignore    "$HOME/.config/git/ignore"
+link config/cursor/settings.json "$HOME/Library/Application Support/Cursor/User/settings.json"
+
+link config/claude/CLAUDE.md      "$HOME/.claude/CLAUDE.md"
+link config/claude/settings.json  "$HOME/.claude/settings.json"
+link config/claude/statusline.sh  "$HOME/.claude/statusline.sh"
+for skill in "$DOTFILES"/config/claude/skills/*/; do
+  name="$(basename "$skill")"
+  link "config/claude/skills/$name" "$HOME/.claude/skills/$name"
+done
+
+echo "Local files (never committed)"
+for f in .zshrc.local .gitconfig.local; do
+  if [[ -e "$HOME/$f" ]]; then
+    echo "  ok      ~/$f"
+  else
+    run touch "$HOME/$f"
+    echo "  created ~/$f"
+  fi
+done
+
+echo "Done. Open a new terminal or run: source ~/.zshrc"
